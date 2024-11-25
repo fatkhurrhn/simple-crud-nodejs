@@ -3,38 +3,19 @@ const bodyParser = require('body-parser');
 const app = express();
 const port = 3000;
 
-// Middleware
+// Menyajikan file statis dari folder 'public'
+app.use(express.static('public'));  // Menggunakan middleware untuk file statis
+
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));  // To serve static files (like CSS)
 
-let items = [];  // This will temporarily hold the items
+let items = [];  // Menyimpan item sementara
 
-// Route to display the items (Home)
+// Route untuk tampilan utama (daftar item)
 app.get('/', (req, res) => {
-    let itemsList = items.map((item, index) => {
-        return `<li>${item} <a href="/edit/${index}">Edit</a> | <a href="/delete/${index}">Delete</a></li>`;
-    }).join('');
-    
-    const html = `
-        <html>
-        <head>
-            <title>Simple CRUD</title>
-            <link rel="stylesheet" href="/styles.css">
-        </head>
-        <body>
-            <h1>CRUD Application</h1>
-            <form action="/add" method="POST">
-                <input type="text" name="item" placeholder="Enter item" required>
-                <button type="submit">Add Item</button>
-            </form>
-            <ul>${itemsList}</ul>
-        </body>
-        </html>
-    `;
-    res.send(html);
+    res.sendFile(__dirname + '/views/index.html');
 });
 
-// Route to add a new item
+// Route untuk menambahkan item baru
 app.post('/add', (req, res) => {
     const newItem = req.body.item;
     if (newItem) {
@@ -43,58 +24,30 @@ app.post('/add', (req, res) => {
     res.redirect('/');
 });
 
-// Route to edit an item
+// Route untuk mengedit item
 app.get('/edit/:id', (req, res) => {
-    const itemId = parseInt(req.params.id);
-    if (isNaN(itemId) || itemId < 0 || itemId >= items.length) {
-        return res.status(400).send('Invalid item ID');
-    }
-    
+    const itemId = req.params.id;
     const itemToEdit = items[itemId];
-    const html = `
-        <html>
-        <head>
-            <title>Edit Item</title>
-            <link rel="stylesheet" href="/styles.css">
-        </head>
-        <body>
-            <h1>Edit Item</h1>
-            <form action="/update/${itemId}" method="POST">
-                <input type="text" name="item" value="${itemToEdit}" required>
-                <button type="submit">Update Item</button>
-            </form>
-            <a href="/">Go Back</a>
-        </body>
-        </html>
-    `;
-    res.send(html);
+    res.sendFile(__dirname + '/views/edit.html');
 });
 
-// Handle the form submission for editing an item
+// Route untuk memperbarui item
 app.post('/update/:id', (req, res) => {
-    const itemId = parseInt(req.params.id);
+    const itemId = req.params.id;
     const updatedItem = req.body.item;
-
-    if (isNaN(itemId) || itemId < 0 || itemId >= items.length) {
-        return res.status(400).send('Invalid item ID');
-    }
-
     if (updatedItem) {
         items[itemId] = updatedItem;
     }
     res.redirect('/');
 });
 
-// Route to delete an item
+// Route untuk menghapus item
 app.get('/delete/:id', (req, res) => {
-    const itemId = parseInt(req.params.id);
-    if (isNaN(itemId) || itemId < 0 || itemId >= items.length) {
-        return res.status(400).send('Invalid item ID');
-    }
-    items.splice(itemId, 1);  // Remove the item by its index
+    const itemId = req.params.id;
+    items.splice(itemId, 1);  // Menghapus item berdasarkan index
     res.redirect('/');
 });
 
 app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
+    console.log(`Server berjalan di http://localhost:${port}`);
 });
